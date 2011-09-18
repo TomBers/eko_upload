@@ -1,0 +1,48 @@
+{% extends 'main.html' %}
+{% import 'form_elements.html' as forms %}
+{% block header %}
+<div class="grid_12">
+	<div class="pad5">
+		<h2>Register a new Kiosk</h2>
+		<p>Please enter the following details about your energy kiosk observer unit.</p>
+		
+	</div>
+</div>
+{% endblock%}
+
+{% block content %}
+	<div class="grid_12">
+		<div class="row_box">
+           <form action="/kiosks/register" enctype="multipart/form-data" method="post" class="uniForm">
+				{% if errors %}      	       
+      	       		<div id="errorMsg">
+        				<h3>This form failed validation</h3>
+          				<ol>
+          				{% for error in errors %}
+            				<li>{{ error }}</li>
+            			{% endfor %}
+          				</ol>
+      				</div>
+				{% endif %}
+      	       
+      	       <fieldset class="inlineLabels">
+					<h3>Site Details</h3>
+					{{ forms.input ("name", value= data.name if prepop,  label="Kiosk Name", required=true, size_class="medium") }}
+					{{ forms.input ("organisation", value= data.org if prepop, label="Organisation", required=true, size_class="short", hint="Owner organisation of kiosk") }}
+					{{ forms.input ("location", value= data.loc if prepop, label="Location", required=true, size_class="short") }}
+					{{ forms.input ("notify_email", value= data.notify_email if prepop, label="Notification Email Address", size_class="medium", hint="Email address for remote alerts and system notifications") }}
+					{{ forms.input ("notify_sms", value= data.notify_sms if prepop, label="Notification SMS Phone", size_class="medium", hint="Number to message with remote alerts and system notifications") }}
+					<h3>Deployment Details</h3>
+					{{ forms.read_only_input("Administrator", user_name) }}
+					{{ forms.input ("dieid", value=data.dieid if prepop, label="OMAP Die ID", size_class="long", hint="TI OMAP3 dieid# from u-boot or /proc/cmdline") }}
+					{{ forms.select ("hardware", label="Datalogger Hardware", options=kioskhwls, hint="Datalogger hardware deployed to kiosk") }}
+					{{ forms.textarea ("pubkey_e", label="RSA Public Key [e] parameter", value=data.pubkey_e if prepop, hint="The RSA public key e parameter as copied from the datalogger") }}
+					{{ forms.textarea ("pubkey_n", label="RSA Public Key [n] parameter", value=data.pubkey_n if prepop, hint="The RSA public key n parameter as copied from the datalogger") }}
+				
+				</fieldset>
+				{{ forms.buttons () }}
+			</form>
+			
+    	</div>
+    </div>
+{% endblock %}

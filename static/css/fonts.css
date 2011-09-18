@@ -1,0 +1,41 @@
+@media screen {
+@font-face {
+  font-family: 'Wire One';
+  font-style: normal;
+  font-weight: normal;
+  src: local('Wire One'), local('WireOne'), url('../fonts/WireOne.ttf') format('woff');
+}
+}
+
+@media screen {
+@font-face {
+  font-family: 'Maven Pro';
+  font-style: normal;
+  font-weight: 900;
+  src: local('Maven Pro Black'), local('MavenProBlack'), url('../fonts/MavenPro-Black.ttf') format('woff');
+}
+}
+@media screen {
+@font-face {
+  font-family: 'Maven Pro';
+  font-style: normal;
+  font-weight: 700;
+  src: local('Maven Pro Bold'), local('MavenProBold'), url('../fonts/MavenPro-Bold.ttf') format('woff');
+}
+}
+@media screen {
+@font-face {
+  font-family: 'Maven Pro';
+  font-style: normal;
+  font-weight: 500;
+  src: local('Maven Pro Medium'), local('MavenProMedium'), url('../fonts/MavenPro-Medium.ttf') format('woff');
+}
+}
+@media screen {
+@font-face {
+  font-family: 'Maven Pro';
+  font-style: normal;
+  font-weight: 400;
+  src: local('Maven Pro Regular'), local('MavenProRegular'), url('../fonts/MavenPro-Regular.ttf') format('woff');
+}
+}

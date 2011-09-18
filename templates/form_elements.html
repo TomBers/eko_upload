@@ -1,0 +1,67 @@
+{% macro input(name, label='', dvalue='', value='', hint='', type='text', size='35',  maxlength='50', size_class='small', required=false, opt_class='' )-%}
+
+<div class="ctrlHolder">
+          <label for="{{ name }}">{%- if required==true -%}<em>*</em>{%- endif -%}{{ label }}</label>
+          <input name="{{ name }}" data-default-value="{{ dvalue }}" value="{{ value }}" size="{{ size }}" maxlength="{{ maxlength }}" type="{{ type }}" class="textInput {{ size_class }}{%- if required==true -%} required{%- endif -%}"/>
+          {%- if hint -%}<p class="formHint">{{ hint }}</p>{%- endif -%}
+</div>
+
+{% endmacro %}
+
+{% macro radios(name, label='', options=[], hint='', required=false) %}
+<div class="ctrlHolder">
+  <p class="label">
+	{% if required==true %}<em>*</em>{% endif %} {{ label }}
+  </p>
+  <ul class="blockLabels">
+	{% for option in options %}
+	<li><label for=""><input id="" name="" data-default-value="{{ option.value }}" type="radio" value="{{ option.value }}" class="{%- if required==true -%}required{%- endif -%}"/> {{ option.text }}</label></li>
+	{% endfor %}
+  </ul>
+  {%- if hint -%}<p class="formHint">{{ hint }}</p>{%- endif -%}
+</div>
+{% endmacro %}
+
+{% macro fileupload(name, label='File Upload', size='35', hint='', required=False) %}
+<div class="ctrlHolder"> 
+  <label for="{{ name }}">{%- if required==true -%}<em>*</em>{%- endif -%} {{label}}</label> 
+  <input type="file" id="{{ name }}" name="{{ name }}" size="{{ size }}" class="fileUpload{%- if required==true -%} required{%- endif -%}" /> 
+  <p class="formHint">{{ hint }}</p> 
+</div>
+
+{% endmacro %}
+
+{% macro textarea(name, value='', label='', rows='25', cols='25', hint='', required=false) %}
+<div class="ctrlHolder">
+  <label for="">{%- if required==true -%}<em>*</em>{%- endif -%} {{ label }}</label>
+  <textarea name="{{ name }}" value="{{ value }}" rows="{{ rows }}" cols="{{ cols }}" class="{%- if required==true -%}required{%- endif -%}"></textarea>
+  {%- if hint -%}<p class="formHint">{{ hint }}</p>{%- endif -%}
+</div>
+{% endmacro %}
+
+{% macro select( name, label='', options='', hint='', required=false )-%}
+<div class="ctrlHolder">
+  <label for="{{ name }}">{%- if required==true -%}<em>*</em>{%- endif -%}{{ label }}</label>
+
+  <select name="{{ name }}" id="" class="selectInput">
+  	{% for option in options %}
+	<option data-default-value="{{ option.value }}" value="{{ option.value }}">{{ option.text }}</option>
+	{% endfor %}
+  </select>
+  <p class="formHint">{{ hint }}</p>
+</div>
+{% endmacro %}
+
+{% macro read_only_input(label, value) %}
+<div class="ctrlHolder">
+	<h4 class="readOnlyLabel">{{ label }}</h4>
+	<div class="readOnly">{{ value }}</div>
+</div>
+{% endmacro %}
+
+{% macro buttons() %}
+<div class="buttonHolder">
+    <button type="submit" class="secondaryAction">← Cancel and go back</button>
+    <button type="submit" class="primaryAction">Submit</button>
+</div>
+{% endmacro %}

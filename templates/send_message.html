@@ -1,0 +1,27 @@
+{% extends 'main.html' %}
+{% import 'form_elements.html' as forms %}
+{% block header %}
+<div class="grid_12">
+	<div class="pad5">
+		<h2>Send Message to Kiosk</h2>
+			</div>
+</div>
+{% endblock%}
+
+{% block content %}
+	<div class="grid_12">
+		<div class="row_box">
+           <form action="#" class="uniForm">
+      	       <fieldset class="inlineLabels">
+					<h3>Message Details</h3>
+					<p>You will be sent an email once the message has been downloaded to the remote device.</p>
+					{{ forms.select ("name", label="Kiosk", required=true, options=kiosks) }}
+					{{ forms.radios ("msg_type", label="Type", required=true, options=[{value:'msg', text:'Message'},{value:'cmd', text:'Command'}]) }}
+					{{ forms.textarea ("message", label="Message", required=true) }}
+				</fieldset>
+				
+			</form>
+			
+    	</div>
+    </div>
+{% endblock %}

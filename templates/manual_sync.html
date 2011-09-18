@@ -1,0 +1,29 @@
+{% extends 'main.html' %}
+{% import 'form_elements.html' as forms %}
+{% block header %}
+<div class="grid_12">
+	<div class="pad5">
+		<h2>Upload Sync Packet (DEBUG)</h2>
+			</div>
+</div>
+{% endblock%}
+
+{% block content %}
+	<div class="grid_12">
+		<div class="row_box">
+           <form action="#" class="uniForm">
+      	       <fieldset class="inlineLabels">
+					<h3>Site Details</h3>
+					{{ forms.input ("name", label="Kiosk Name", required=true, size_class="medium") }}
+					{{ forms.input ("organisation", label="Organisation", required=true, size_class="short", hint="Owner organisation of kiosk") }}
+					{{ forms.input ("location", label="Location", required=true, size_class="short") }}
+					<h3>Deployment Details</h3>
+					{{ forms.read_only_input("Administrator", user_name) }}
+					{{ forms.select ("hardware", label="Datalogger Hardware", options=kioskhwls, hint="Datalogger hardware deployed to kiosk") }}
+					{{ forms.input ("secret", label="Shared Secret", required=true, size_class="medium", hint="Secret as configured on datalogger") }}
+				</fieldset>
+			</form>
+			
+    	</div>
+    </div>
+{% endblock %}

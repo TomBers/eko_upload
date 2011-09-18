@@ -1,0 +1,27 @@
+{% extends 'main.html' %}
+
+{% block header %}
+<div class="grid_12">
+	<div class="pad5">
+		<h2>Registered Kiosks</h2>
+		<p>This page lists the energy kiosks registered for {{ user_name }}. You may <a href="/kiosks/register" title="Register new kiosk">Register</a> a new kiosk or contact <a href='/help'>support</a> to transfer ownership of existing data.</p>
+	</div>
+</div>
+{% endblock%}
+
+{% block content %}
+	<div class="grid_12">
+		<div class="row_box">
+            <ul>
+    		{% for org in kiosks|groupby('organisation') %}
+    		<li><h4>{{ org.grouper }}</h4><ul>
+    		{% for kiosk in org.list %}
+    			<li>{{kiosk.name}} - {{kiosk.location}} ( <a href="/kiosks/register" title="Register new kiosk">Add</a> | <a href="#" title="Edit kiosk registration">Edit</a> | <a href="#" title="Delete kiosk from system">Delete</a> )</li>
+    		{% endfor %}</ul></li>
+    		{% else %}
+    		<li>No kiosks for user.</li>
+    		{% endfor %}
+    		</ul>
+    	</div>
+    </div>
+{% endblock %}
