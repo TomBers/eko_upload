@@ -19,6 +19,8 @@ import os
 
 DIEID =  '2c6400211ff00000015739eb0c01002d'
 
+HOST = 'localhost:8081'
+
 START = datetime.utcnow()
 UPTIME = 0
 
@@ -59,7 +61,7 @@ def send_heartbeat(url, key):
     json_msg['method'] = 'heartbeat'
     json_msg['id'] = 4
     params = {}
-    params['dieid'] = DIEID
+    params['kiosk-id'] = DIEID
     if UPTIME < 60:
         # under a minute
         uptimestr = "%.2f seconds" % UPTIME
@@ -74,7 +76,7 @@ def send_heartbeat(url, key):
         uptimestr = "%.2f days" % (UPTIME/(60.0*60.0*24.0))
         
     params['uptime'] = uptimestr
-    params['sw_version'] = '1.0.0'
+    params['sw-version'] = '1.0.0'
     params['time'] = datetime.utcnow()
     json_msg['params'] = params
     jsstr = json.dumps(json_msg)
@@ -99,7 +101,7 @@ def get_messages(url, key):
     json_msg = {}
     json_msg['method'] = 'get_messages'
     json_msg['id'] = 4
-    json_msg['params'] = {'dieid': DIEID}
+    json_msg['params'] = {'kiosk-id': DIEID}
     jsstr = json.dumps(json_msg)
     hash = MD5.new(jsstr).digest()
     baseconverter = BaseConverter('0123456789abcdef')
@@ -123,8 +125,8 @@ if __name__ == "__main__":
     while True:
         uptime = datetime.utcnow() - START
         UPTIME = uptime.total_seconds()
-        get_messages('http://www.ekohub.org/api/json', key)
-        send_heartbeat('http://www.ekohub.org/api/json', key)
+        get_messages('http://%s/api/json' % HOST, key)
+        send_heartbeat('http://%s/api/json' % HOST, key)
         time.sleep(5)
         
         time.sleep(5)

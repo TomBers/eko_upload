@@ -1,7 +1,8 @@
 import datetime
 from google.appengine.ext import db
 from google.appengine.ext import blobstore
-
+from google.appengine.api import memcache
+import logging
 class Kiosk(db.Model):
     """A record for a kiosk including its owner and security key"""
     name = db.StringProperty()
@@ -27,7 +28,20 @@ class Kiosk(db.Model):
         self.notify_sms = data['notify_sms']
         self.dieid = data['dieid']
         return
-
+    
+    def kiosk_from_dieid(cls, dieid):
+        kiosk = memcache.get(dieid, namespace='kiosks')
+        if kiosk is not None:
+            return kiosk
+        else:
+            kiosk = db.GqlQuery("SELECT * FROM Kiosk where dieid = :1", dieid).get()
+            if kiosk is None:
+                return None
+            if not memcache.add(dieid, kiosk, namespace='kiosks'):
+                logging.error("Unable to set memcache for kiosk %s." % kiosk.dieid)
+            return kiosk
+    kiosk_from_dieid = classmethod(kiosk_from_dieid)
+    
 class SyncSession(db.Model):
     """A upload session from the kiosk"""
     client_ref = db.StringProperty()
@@ -54,9 +68,13 @@ class KioskMessage(db.Model):
     kiosk = db.ReferenceProperty(Kiosk)
     message = db.TextProperty()
     origin = db.StringProperty()
+    ip = db.StringProperty()
+    
     date = db.DateTimeProperty()
+    
+    origin_date = db.DateTimeProperty()
     # a kiosk may refer to a server message
-    server_msg = db.ReferenceProperty(ServerMessage)
+    #server_msg = db.ReferenceProperty(ServerMessage)
     
     # a kiosk may refer to a sync upload
     session_ref = db.ReferenceProperty(SyncSession)
