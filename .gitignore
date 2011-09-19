@@ -29,3 +29,4 @@ MANIFEST.in
 Makefile
 setup.cfg
 setup.py
+app.yaml

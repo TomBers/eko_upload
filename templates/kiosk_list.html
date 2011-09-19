@@ -10,13 +10,16 @@
 {% endblock%}
 
 {% block content %}
-	<div class="grid_12">
-		<div class="row_box">
+    <div class="row_box">
+	<div class="grid_6">
+	    
+		<div class="row_box pad5">
+		<h3>Kiosk List</h3>
             <ul>
     		{% for org in kiosks|groupby('organisation') %}
     		<li><h4>{{ org.grouper }}</h4><ul>
     		{% for kiosk in org.list %}
-    			<li>{{kiosk.name}} - {{kiosk.location}} ( <a href="/kiosks/register" title="Register new kiosk">Add</a> | <a href="#" title="Edit kiosk registration">Edit</a> | <a href="#" title="Delete kiosk from system">Delete</a> )</li>
+    			<li>{{kiosk.name}} - {{kiosk.location}} ( <a href="/kiosks/edit/{{kiosk.dieid}}" title="Edit kiosk registration">Edit</a> | <a href="#" title="Delete kiosk from system">Delete</a> )</li>
     		{% endfor %}</ul></li>
     		{% else %}
     		<li>No kiosks for user.</li>
@@ -24,4 +27,106 @@
     		</ul>
     	</div>
     </div>
+    
+    <div class="grid_6">
+	    
+		<div class="row_box pad5">
+		<h3>Recent Heartbeats</h3>
+		{% if not heartbeats %}
+		<p>No heartbeats recorded on any kiosks registered to this account.</p>
+	    {% else %}
+            <table class="display" id="heartbeats">
+            <thead>
+                <tr>
+                    <td>Kiosk</td>
+                    <td>Time</td>
+                    <td>IP</td>
+                    <td>Uptime</td>
+                </tr>
+            </thead>
+            <tbody>
+            
+                {% for heartbeat in heartbeats %}
+                <tr>
+                    <td>{{heartbeat.kiosk.name}}</td>
+                    <td>{{heartbeat.server_time.strftime("%d-%m-%Y %H:%M")}}</td>
+                    <td>{{heartbeat.client_ip}}</td>
+                    <td>{{heartbeat.client_uptime}}</td>
+                </tr>
+                {% endfor %}
+            
+    		</tbody>
+    		</table>
+    		{% endif %}
+    	</div>
+    </div>
+    </div>
+    
+    {% if recent_smsgs %}
+    <div class="row_box">
+    <div class="grid_12">
+    <h3>Recent Server Messages</h3>
+    <table class="display" id="recent_msgs">
+    <thead><tr>
+    <td>Kiosk</td>
+    <td>Date</td>
+    <td>Type</td>
+    <td>Message</td>
+    <td>Retrieved</td>
+    </tr></thead>
+    
+    <tbody>
+    {% for msg in recent_smsgs %}
+    <tr>
+    <td>{{msg.kiosk.name}}</td>
+    <td>{{msg.date.strftime("%d-%m-%Y %H:%M")}}</td>
+    <td>{{msg.msg_type}}</td>
+    <td>{{msg.message}}</td>
+    <td>{{msg.retrieved_date.strftime("%d-%m-%Y %H:%M")}}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+    
+    </table>
+    </div>
+    </div>
+    {% endif %}
+    
+    {% if unsynced_smsgs %}
+    <div class="row_box">
+    <div class="grid_12">
+    <h3>Uncollected Server Messages</h3>
+    <table class="display" id="unsynced_msgs">
+    <thead><tr>
+    <td>Kiosk</td>
+    <td>Date</td>
+    <td>Type</td>
+    <td>Message</td>
+    </tr></thead>
+    
+    <tbody>
+    {% for msg in unsynced_smsgs %}
+    <tr>
+    <td>{{msg.kiosk.name}}</td>
+    <td>{{msg.date}}</td>
+    <td>{{msg.msg_type}}</td>
+    <td>{{msg.message}}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+    
+    </table>
+    </div>
+    </div>
+    {% endif %}
+{% endblock %}
+
+{% block js_region %}
+<script type="text/javascript" charset="utf-8">
+			$(document).ready(function() {
+				$('#heartbeats').dataTable();
+				$('#unsynced_msgs').dataTable();
+				$('#recent_msgs').dataTable();
+			} );
+		</script>
 {% endblock %}

@@ -1,0 +1,50 @@
+{% extends 'main.html' %}
+{% import 'form_elements.html' as forms %}
+{% block header %}
+<div class="grid_12">
+	<div class="pad5">
+		<h2>Send a Message to a Kiosk</h2>
+		<p>Please fill out the message to send to the kiosk.</p>
+	</div>
+</div>
+{% endblock%}
+
+{% block content %}
+	<div class="grid_12">
+		<div class="row_box">
+           <form action="/kiosks/send_message" enctype="multipart/form-data" method="post" class="uniForm">
+				{% if errors %}      	       
+      	       		<div id="errorMsg">
+        				<h3>This form failed validation</h3>
+          				<ol>
+          				{% for error in errors %}
+            				<li>{{ error }}</li>
+            			{% endfor %}
+          				</ol>
+      				</div>
+				{% endif %}
+      	       
+      	       <fieldset class="inlineLabels">
+					<h3>Recipient</h3>
+					{% if data %}
+					    {% if data.readonly_id %}
+					        {{ forms.read_only_input("OMAP Die ID", data.dieid, name="dieid", mkhidden=true) }}
+					    {% else %}
+					        {{ forms.select("dieid", presel=data.dieid if prepop, label="OMAP Die ID", options=kiosks) }}
+					    {% endif %}
+					{% else %}
+					   {{ forms.select("dieid", label="OMAP Die ID", options=kiosks) }}
+					{% endif %}
+					
+					{{ forms.select ("msg_type", label="Message Type", options=msgtypes, presel=data.msg_type if prepop) }}
+					
+					<h3>Message</h3>
+					{{ forms.textarea ("message", label="Message Content", required=true, value=data.message if prepop, hint="The message may be a specially formatted command depending on the message type.") }}
+				    
+				</fieldset>
+				{{ forms.buttons () }}
+			</form>
+			
+    	</div>
+    </div>
+{% endblock %}

@@ -7,8 +7,8 @@ from google.appengine.ext import db
 import logging
 
 from handlers.BaseHandler import BaseHandler
-from handlers.KioskHandlers import RegKiosksHandler, ListKiosksHandler
-from handlers.RPCHandlers import RPCHeartbeatHandler
+from handlers.KioskHandlers import RegKiosksHandler, EditKioskHandler, ListKiosksHandler, SendMsgKioskHandler
+from handlers.RPCHandlers import JSONRPCHandler
 
 class HomePageHandler(BaseHandler):
     def get(self):
@@ -25,18 +25,9 @@ app = webapp2.WSGIApplication([
     ('/', HomePageHandler),
     ('/kiosks', ListKiosksHandler),
     ('/kiosks/register', RegKiosksHandler),
-    ('/kiosks/<kiosk_id>', ListKiosksHandler),
-    ('/kiosks/<kiosk_id>/edit', ListKiosksHandler),
-    ('/kiosks/<kiosk_id>/send_message', ListKiosksHandler),
-    ('/kiosks/<kiosk_id>/send_command', ListKiosksHandler),
-    ('/kiosks/<kiosk_id>/status', ListKiosksHandler),
-    ('/kiosks/<kiosk_id>/sync', ListKiosksHandler),
-    ('/kiosks/<kiosk_id>/logs', ListKiosksHandler),
-    ('/kiosks/<kiosk_id>/sync/<sync_id>', ListKiosksHandler),
-    ('/kiosks/<kiosk_id>/logs/<log_id>', ListKiosksHandler),
-    ('/api/<kiosk_id>/heartbeat', RPCHeartbeatHandler),
-    ('/api/<kiosk_id>/logupload', RPCHeartbeatHandler),
-    ('/api/<kiosk_id>/communicate', RPCHeartbeatHandler),
+    ('/kiosks/send_message', SendMsgKioskHandler),
+    (r'/kiosks/edit/([a-zA-Z0-9_]+)', EditKioskHandler),
+    ('/api/json', JSONRPCHandler)
 ], config=config, debug=True)
 
 def main():

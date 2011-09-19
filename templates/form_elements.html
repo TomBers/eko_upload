@@ -11,12 +11,12 @@
 {% macro radios(name, label='', options=[], hint='', required=false) %}
 <div class="ctrlHolder">
   <p class="label">
-	{% if required==true %}<em>*</em>{% endif %} {{ label }}
+    {% if required==true %}<em>*</em>{% endif %} {{ label }}
   </p>
   <ul class="blockLabels">
-	{% for option in options %}
-	<li><label for=""><input id="" name="" data-default-value="{{ option.value }}" type="radio" value="{{ option.value }}" class="{%- if required==true -%}required{%- endif -%}"/> {{ option.text }}</label></li>
-	{% endfor %}
+    {% for option in options %}
+    <li><label for=""><input id="" name="" data-default-value="{{ option.value }}" type="radio" value="{{ option.value }}" class="{%- if required==true -%}required{%- endif -%}"/> {{ option.text }}</label></li>
+    {% endfor %}
   </ul>
   {%- if hint -%}<p class="formHint">{{ hint }}</p>{%- endif -%}
 </div>
@@ -34,28 +34,31 @@
 {% macro textarea(name, value='', label='', rows='25', cols='25', hint='', required=false) %}
 <div class="ctrlHolder">
   <label for="">{%- if required==true -%}<em>*</em>{%- endif -%} {{ label }}</label>
-  <textarea name="{{ name }}" value="{{ value }}" rows="{{ rows }}" cols="{{ cols }}" class="{%- if required==true -%}required{%- endif -%}"></textarea>
+  <textarea name="{{ name }}" rows="{{ rows }}" cols="{{ cols }}" class="{%- if required==true -%}required{%- endif -%}">{{value}}</textarea>
   {%- if hint -%}<p class="formHint">{{ hint }}</p>{%- endif -%}
 </div>
 {% endmacro %}
 
-{% macro select( name, label='', options='', hint='', required=false )-%}
+{% macro select( name, label='', options='', hint='', required=false, presel='' )-%}
 <div class="ctrlHolder">
   <label for="{{ name }}">{%- if required==true -%}<em>*</em>{%- endif -%}{{ label }}</label>
 
   <select name="{{ name }}" id="" class="selectInput">
-  	{% for option in options %}
-	<option data-default-value="{{ option.value }}" value="{{ option.value }}">{{ option.text }}</option>
-	{% endfor %}
+    {% for option in options %}
+    <option data-default-value="{{ option.value }}" value="{{ option.value }}" {%- if presel == option.value -%}selected="selected"{%- endif -%}>{{ option.text }}</option>
+    {% endfor %}
   </select>
   <p class="formHint">{{ hint }}</p>
 </div>
 {% endmacro %}
 
-{% macro read_only_input(label, value) %}
+{% macro read_only_input(label, value, name='', mkhidden=false) %}
 <div class="ctrlHolder">
-	<h4 class="readOnlyLabel">{{ label }}</h4>
-	<div class="readOnly">{{ value }}</div>
+    <h4 class="readOnlyLabel">{{ label }}</h4>
+    <div class="readOnly">{{ value }}</div>
+    {% if mkhidden %}
+        <input name="{{name}}" value="{{value}}" type="hidden" />
+    {% endif %}
 </div>
 {% endmacro %}
 

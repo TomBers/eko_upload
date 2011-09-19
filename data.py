@@ -23,7 +23,6 @@ class Kiosk(db.Model):
 		self.location = data['loc']
 		self.pubkey_e = data['pubkey_e']
 		self.pubkey_n = data['pubkey_n']
-		
 		self.notify_email = data['notify_email']
 		self.notify_sms = data['notify_sms']
 		self.dieid = data['dieid']
@@ -31,6 +30,7 @@ class Kiosk(db.Model):
 
 class SyncSession(db.Model):
 	"""A upload session from the kiosk"""
+	client_ref = db.StringProperty()
 	kiosk = db.ReferenceProperty(Kiosk)
 	date = db.DateTimeProperty()
 	dat_payload_size = db.IntegerProperty()
@@ -44,18 +44,23 @@ class SyncSession(db.Model):
 class ServerMessage(db.Model):
 	"""A message from the server to the kiosk"""
 	kiosk = db.ReferenceProperty(Kiosk)
-	message = db.StringProperty() # can be a command. eg: STAY_ALIVE
+	message = db.TextProperty() # can be a command. eg: STAY_ALIVE
+	msg_type = db.StringProperty()
 	date = db.DateTimeProperty()
 	retrieved = db.BooleanProperty()
-	session = db.ReferenceProperty(SyncSession)
-
+	retrieved_date = db.DateTimeProperty()
+	
 class KioskMessage(db.Model):
 	"""A message from the kiosk to the server"""
 	kiosk = db.ReferenceProperty(Kiosk)
-	message = db.StringProperty()
+	message = db.TextProperty()
 	origin = db.StringProperty()
 	date = db.DateTimeProperty()
-	session = db.ReferenceProperty(SyncSession)
+	# a kiosk may refer to a server message
+	server_msg = db.ReferenceProperty(ServerMessage)
+	
+	# a kiosk may refer to a sync upload
+	session_ref = db.ReferenceProperty(SyncSession)
 
 class Heartbeat(db.Model):
 	"""A kiosk sends a heartbeat every time it finds itself online"""

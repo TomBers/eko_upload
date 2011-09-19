@@ -13,7 +13,7 @@
 {% block content %}
 	<div class="grid_12">
 		<div class="row_box">
-           <form action="/kiosks/register" enctype="multipart/form-data" method="post" class="uniForm">
+           <form action="{%- if not editdata -%}/kiosks/register{%- else -%}/kiosks/edit/{{data.dieid}}{%- endif -%}" enctype="multipart/form-data" method="post" class="uniForm">
 				{% if errors %}      	       
       	       		<div id="errorMsg">
         				<h3>This form failed validation</h3>
@@ -34,10 +34,17 @@
 					{{ forms.input ("notify_sms", value= data.notify_sms if prepop, label="Notification SMS Phone", size_class="medium", hint="Number to message with remote alerts and system notifications") }}
 					<h3>Deployment Details</h3>
 					{{ forms.read_only_input("Administrator", user_name) }}
-					{{ forms.input ("dieid", value=data.dieid if prepop, label="OMAP Die ID", size_class="long", hint="TI OMAP3 dieid# from u-boot or /proc/cmdline") }}
-					{{ forms.select ("hardware", label="Datalogger Hardware", options=kioskhwls, hint="Datalogger hardware deployed to kiosk") }}
-					{{ forms.textarea ("pubkey_e", label="RSA Public Key [e] parameter", value=data.pubkey_e if prepop, hint="The RSA public key e parameter as copied from the datalogger") }}
-					{{ forms.textarea ("pubkey_n", label="RSA Public Key [n] parameter", value=data.pubkey_n if prepop, hint="The RSA public key n parameter as copied from the datalogger") }}
+					{% if data %}
+					{% if not data.diero %}
+					{% else %}
+					{{ forms.read_only_input("OMAP Die ID", data.dieid, name="dieid", mkhidden=true) }}
+					{% endif %}
+					{% else %}
+					{{ forms.input ("dieid", value=data.dieid if prepop, label="OMAP Die ID", required=true, size_class="long", hint="TI OMAP3 dieid# from u-boot or /proc/cmdline") }}
+					{% endif %}
+					{{ forms.select ("hardware", presel=data.hardware if preop, label="Datalogger Hardware", options=kioskhwls, hint="Datalogger hardware deployed to kiosk") }}
+					{{ forms.input ("pubkey_e", label="RSA Public Key [e] parameter", required=true, value=data.pubkey_e if prepop, hint="The RSA public key e parameter as copied from the datalogger") }}
+					{{ forms.textarea ("pubkey_n", label="RSA Public Key [n] parameter", required=true, value=data.pubkey_n if prepop, hint="The RSA public key n parameter as copied from the datalogger") }}
 				
 				</fieldset>
 				{{ forms.buttons () }}

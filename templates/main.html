@@ -29,6 +29,8 @@
   <link rel="stylesheet" href="/static/css/960.css">
   <link rel="stylesheet" href="/static/css/default.css">
   
+<link rel="stylesheet" href="/static/css/demo_table.css">
+  
   <link href='http://fonts.googleapis.com/css?family=Mako&v1' rel='stylesheet' type='text/css'>
 
 
@@ -86,7 +88,7 @@
 					<div class="flash_red">
 					<p>{{ flash }}</p>
 					</div>
-				{% elif level == 'sucess' %}
+				{% elif level == 'ok' %}
 				  <div class="flash_green">
 					<p>
 					  {{ flash }}
@@ -141,6 +143,7 @@
 
 	    
 <script type="text/javascript" src="/static/js/uni-form-validation.jquery.js" charset="utf-8"></script>
+
     <script>
       $(function(){
         $('form.uniForm').uniform({
@@ -149,6 +152,7 @@
       });
     </script>
 
+<script type="text/javascript" language="javascript" src="/static/js/jquery.dataTables.min.js"></script>
         {% block js_region %}
         <!-- JS -->
         {% endblock %}
