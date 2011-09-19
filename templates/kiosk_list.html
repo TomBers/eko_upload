@@ -13,13 +13,13 @@
     <div class="row_box">
 	<div class="grid_6">
 	    
-		<div class="row_box pad5">
+		<div class="pad5">
 		<h3>Kiosk List</h3>
             <ul>
     		{% for org in kiosks|groupby('organisation') %}
     		<li><h4>{{ org.grouper }}</h4><ul>
     		{% for kiosk in org.list %}
-    			<li>{{kiosk.name}} - {{kiosk.location}} ( <a href="/kiosks/edit/{{kiosk.dieid}}" title="Edit kiosk registration">Edit</a> | <a href="#" title="Delete kiosk from system">Delete</a> )</li>
+    			<li>{{kiosk.name}} - {{kiosk.location}} <br/><a href="/kiosks/edit/{{kiosk.dieid}}" title="Edit kiosk registration">Edit</a> | <a href="/kiosks/send_message" title="Send Message">Send Message</a> | <a href="#" title="Delete kiosk from system">Delete</a></li>
     		{% endfor %}</ul></li>
     		{% else %}
     		<li>No kiosks for user.</li>
@@ -30,7 +30,8 @@
     
     <div class="grid_6">
 	    
-		<div class="row_box pad5">
+		<div class="pad5">
+		
 		<h3>Recent Heartbeats</h3>
 		{% if not heartbeats %}
 		<p>No heartbeats recorded on any kiosks registered to this account.</p>
@@ -63,7 +64,8 @@
     </div>
     
     {% if recent_smsgs %}
-    <div class="row_box">
+    <div class="row_box pad5">
+   
     <div class="grid_12">
     <h3>Recent Server Messages</h3>
     <table class="display" id="recent_msgs">
@@ -93,7 +95,7 @@
     {% endif %}
     
     {% if unsynced_smsgs %}
-    <div class="row_box">
+    <div class="row_box pad5">
     <div class="grid_12">
     <h3>Uncollected Server Messages</h3>
     <table class="display" id="unsynced_msgs">

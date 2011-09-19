@@ -211,7 +211,7 @@ class SendMsgKioskHandler(BaseHandler):
         m.date = datetime.utcnow()
         m.retrieved = False
         m.put()
-        self.session.add_flash("Message (%s) waiting for kiosk %s@%s" % (data['msg_type'], kiosk.name, kiosk.location), 'ok')
+        self.session.add_flash("Message (%s) waiting for device %s installed at %s." % (data['msg_type'], kiosk.name, kiosk.location), 'ok')
         
     def _render_form(self, data={}, edit=False):
         user = users.get_current_user()

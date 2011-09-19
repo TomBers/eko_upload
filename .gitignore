@@ -30,3 +30,5 @@ Makefile
 setup.cfg
 setup.py
 app.yaml
+*.lst
+*.zip

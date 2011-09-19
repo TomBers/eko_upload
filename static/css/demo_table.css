@@ -31,13 +31,13 @@
  */
 
 .dataTables_wrapper {
-	position: relative;
+	/*position: relative;
 	min-height: 152px;
 	clear: both;
 	_height: 152px;
 	zoom: 1; /* Feeling sorry for IE */
 	padding: 10px;
-	margin-bottom: 10px;
+	margin-bottom: 30px;
 }
 
 .dataTables_processing {

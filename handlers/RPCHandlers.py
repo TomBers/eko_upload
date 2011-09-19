@@ -192,18 +192,20 @@ class JSONRPCHandler(webapp2.RequestHandler):
         json = simplejson.loads(self.request.body)
         # args looks like {'method':'foo', 'id':'blhblah', 'params':{'arg1':'bar',...}}
         try:
-            method = json['method']
+            method = str(json['method'])
             params = json['params']
-            id = json['id']
+            id = str(json['id'])
         except KeyError, e:
             logging.critical("JSON message processing failed. Dumping Msg:\n\n%s\n\n" % self.request.body)
             raise ValueError("JSON body missing parameter: %s" % e)
-        return (method, params, id)
+        params2 = dict([(str(x),params[x]) for x in params.keys()]) 
+        logging.info("WTF? %s" % str(params))
+        return (method, params2, id)
     
     def post(self):
         try:
             method, params, id = self.process()
-        except ValueError as e:
+        except ValueError, e:
             self.error(400) # bad request
             return
             
@@ -216,6 +218,7 @@ class JSONRPCHandler(webapp2.RequestHandler):
             self.error(404) # file not found
             return
         
+        logging.info("This is whats causing trouble %s" % str(params))
         self.response.headers['content-type'] = 'application/json'
         try:
             result = func(method, id, **params)

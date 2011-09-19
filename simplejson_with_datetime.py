@@ -8,7 +8,7 @@ from django.utils import simplejson as json
 class JSONDateTimeEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, (datetime.date, datetime.datetime)):
-            return obj.isoformat()
+            return obj.strftime('%Y-%m-%dT%H:%M:%S')
         else:
             return json.JSONEncoder.default(self, obj)
 
@@ -25,7 +25,7 @@ def datetime_decoder(d):
                 # For Python <= 2.5 strip off microseconds
                 # v = datetime.datetime.strptime(v.rsplit('.', 1)[0],
                 #     '%Y-%m-%dT%H:%M:%S')
-                v = datetime.datetime.strptime(v, '%Y-%m-%dT%H:%M:%S.%f')
+                v = datetime.datetime.strptime(v, '%Y-%m-%dT%H:%M:%S')
             except ValueError:
                 try:
                     v = datetime.datetime.strptime(v, '%Y-%m-%d').date()
