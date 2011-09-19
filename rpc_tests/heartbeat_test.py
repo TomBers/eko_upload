@@ -124,7 +124,7 @@ if __name__ == "__main__":
         uptime = datetime.utcnow() - START
         UPTIME = uptime.total_seconds()
         get_messages('http://localhost:8081/api/json', key)
-        send_heartbeat('http://localhost:8081/api/json', key)
+        send_heartbeat('http://www.ekohub.org/api/json', key)
         time.sleep(5)
         
         time.sleep(5)
