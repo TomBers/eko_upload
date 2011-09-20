@@ -7,7 +7,7 @@ from google.appengine.ext import db
 import logging
 
 from handlers.BaseHandler import BaseHandler
-
+from google.appengine.api import memcache
 from datetime import datetime, timedelta
 
 class ListKiosksHandler(BaseHandler):
@@ -15,7 +15,7 @@ class ListKiosksHandler(BaseHandler):
         user = users.get_current_user()
         ctx = self.get_ctx(user)
         if user:
-            ctx['kiosks'] = db.GqlQuery("SELECT * FROM Kiosk WHERE admin = :1", user)
+            ctx['kiosks'] = KioskFeedHelper.getKiosksByUser(user)
             helper = KioskFeedHelper(user)
             ctx['heartbeats'] = helper.getHeartbeats()
             ctx['unsynced_smsgs'], ctx['recent_smsgs'] = helper.getServerMessages()
@@ -27,22 +27,34 @@ class KioskFeedHelper(object):
     def __init__(self, user):
         self.user = user
     
-    def getHeartbeats(self):
+    def getKiosksByUser(cls, user, recache=False):
+    	if not user:
+    		return
+    	kiosks = memcache.get(user.user_id(), namespace='kiosks_by_owner')
+        if (not kiosks) or (recache == True):
+        	kiosks = db.GqlQuery("SELECT * FROM Kiosk WHERE admin = :1", user)
+        	if not memcache.add(user.user_id(), kiosks, 5*60*60,namespace='kiosks_by_owner'):
+        		logging.error("Could not cache kiosks in memcache.")
+        return kiosks
+    
+    getKiosksByUser = classmethod(getKiosksByUser)
+    
+    def getHeartbeats(self, limit=20):
         """Returns a list of heartbeat records ordered by time for the current users kiosks"""
-        kiosks = db.GqlQuery("SELECT * FROM Kiosk WHERE admin = :1", self.user)
+        kiosks = self.getKiosksByUser(self.user)
         heartbeats = []
         for kiosk in kiosks:
-            heartbeats += kiosk.heartbeat_set.order('-server_time').fetch(limit=3)
+            heartbeats += kiosk.heartbeat_set.order('-server_time').fetch(limit)
         return heartbeats
     
-    def getServerMessages(self):
+    def getServerMessages(self, limit=10):
         """Returns a list of server messages"""
-        kiosks = db.GqlQuery("SELECT * FROM Kiosk WHERE admin = :1", self.user)
+        kiosks = self.getKiosksByUser(self.user)
         unsynced_msgs = []
         recently_synced = []
         for kiosk in kiosks:
-        	unsynced_msgs += kiosk.servermessage_set.filter('retrieved =', False).fetch(limit=5)
-        	recently_synced += kiosk.servermessage_set.filter('retrieved =', True).fetch(limit=3)
+        	unsynced_msgs += kiosk.servermessage_set.filter('retrieved =', False).fetch(limit)
+        	recently_synced += kiosk.servermessage_set.filter('retrieved =', True).fetch(limit)
         return (unsynced_msgs, recently_synced)
         
 class RegKiosksHandler(BaseHandler):
@@ -90,6 +102,8 @@ class RegKiosksHandler(BaseHandler):
                 logging.exception('Unable to save kiosk to db') 
                 self.session.add_flash('Add failed', 'error')
             finally:
+            	# recache kiosks for this user
+            	KioskFeedHelper.getKiosksByUser(user, recache=True)
                 self.redirect('/kiosks')
                 
         else:

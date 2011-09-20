@@ -19,7 +19,8 @@ import os
 
 DIEID =  '2c6400211ff00000015739eb0c01002d'
 
-HOST = 'localhost:8081'
+HOST = 'www.ekohub.org'
+#HOST = 'localhost:8081'
 
 START = datetime.utcnow()
 UPTIME = 0

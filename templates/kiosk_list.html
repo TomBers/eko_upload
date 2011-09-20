@@ -11,10 +11,11 @@
 
 {% block content %}
     <div class="row_box">
-	<div class="grid_6">
+	<div class="grid_4">
 	    
 		<div class="pad5">
 		<h3>Kiosk List</h3>
+            <div style=" overflow: auto; max-height: 250px;">
             <ul>
     		{% for org in kiosks|groupby('organisation') %}
     		<li><h4>{{ org.grouper }}</h4><ul>
@@ -25,10 +26,11 @@
     		<li>No kiosks for user.</li>
     		{% endfor %}
     		</ul>
+    		</div>
     	</div>
     </div>
     
-    <div class="grid_6">
+    <div class="grid_8">
 	    
 		<div class="pad5">
 		
@@ -36,12 +38,13 @@
 		{% if not heartbeats %}
 		<p>No heartbeats recorded on any kiosks registered to this account.</p>
 	    {% else %}
-            <table class="display" id="heartbeats">
+            <table cellpadding="0" cellspacing="0" border="0" class="display" id="heartbeats">
             <thead>
                 <tr>
+                    <td>IP</td>
                     <td>Kiosk</td>
                     <td>Time</td>
-                    <td>IP</td>
+                    <td>Skew</td>
                     <td>Uptime</td>
                 </tr>
             </thead>
@@ -49,10 +52,11 @@
             
                 {% for heartbeat in heartbeats %}
                 <tr>
-                    <td>{{heartbeat.kiosk.name}}</td>
-                    <td>{{heartbeat.server_time.strftime("%d-%m-%Y %H:%M")}}</td>
-                    <td>{{heartbeat.client_ip}}</td>
-                    <td>{{heartbeat.client_uptime}}</td>
+                    <td class="{% if heartbeat.bad_skew() %}highlighted{% endif %}">{{heartbeat.client_ip}}</td>
+                    <td class="{% if heartbeat.bad_skew() %}highlighted{% endif %}">{{heartbeat.kiosk.name}}</td>
+                    <td class="{% if heartbeat.bad_skew() %}highlighted{% endif %}">{{heartbeat.server_time.strftime("%d/%m/%y %H:%M")}}</td>
+                    <td class="{% if heartbeat.bad_skew() %}highlighted{% endif %}">{{heartbeat.skew_str()}}</td>
+                    <td class="{% if heartbeat.bad_skew() %}highlighted{% endif %}">{{heartbeat.client_uptime}}</td>
                 </tr>
                 {% endfor %}
             
@@ -60,10 +64,12 @@
     		</table>
     		{% endif %}
     	</div>
+    	
     </div>
     </div>
     
     {% if recent_smsgs %}
+    <div class="spacer"></div>
     <div class="row_box pad5">
    
     <div class="grid_12">
@@ -84,7 +90,7 @@
     <td>{{msg.date.strftime("%d-%m-%Y %H:%M")}}</td>
     <td>{{msg.msg_type}}</td>
     <td>{{msg.message}}</td>
-    <td>{{msg.retrieved_date.strftime("%d-%m-%Y %H:%M")}}</td>
+    <td>{{msg.retrieved_date.strftime("%d/%m/%y %H:%M")}}</td>
     </tr>
     {% endfor %}
     </tbody>
@@ -95,6 +101,7 @@
     {% endif %}
     
     {% if unsynced_smsgs %}
+    <div class="spacer"></div>
     <div class="row_box pad5">
     <div class="grid_12">
     <h3>Uncollected Server Messages</h3>
@@ -110,7 +117,7 @@
     {% for msg in unsynced_smsgs %}
     <tr>
     <td>{{msg.kiosk.name}}</td>
-    <td>{{msg.date}}</td>
+    <td>{{msg.date.strftime("%d/%m/%y %H:%M")}}</td>
     <td>{{msg.msg_type}}</td>
     <td>{{msg.message}}</td>
     </tr>
@@ -126,9 +133,23 @@
 {% block js_region %}
 <script type="text/javascript" charset="utf-8">
 			$(document).ready(function() {
-				$('#heartbeats').dataTable();
-				$('#unsynced_msgs').dataTable();
-				$('#recent_msgs').dataTable();
+				$('#heartbeats').dataTable( {
+					"sScrollY": 100,
+					"bJQueryUI": true,
+					"sPaginationType": "full_numbers"
+				} );
+				$('#unsynced_msgs').dataTable(
+				{
+				    "sScrollY": 100,
+					"bJQueryUI": true,
+					"sPaginationType": "full_numbers"
+				});
+				$('#recent_msgs').dataTable(
+				{
+				  "sScrollY": 100,
+					"bJQueryUI": true,
+					"sPaginationType": "full_numbers"
+				});
 			} );
 		</script>
 {% endblock %}

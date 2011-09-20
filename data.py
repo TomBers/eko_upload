@@ -42,6 +42,13 @@ class Kiosk(db.Model):
             return kiosk
     kiosk_from_dieid = classmethod(kiosk_from_dieid)
     
+    # override the default put function to update memcache transparently
+    # this handles both create and update.
+    def put(self, **kwargs):
+        if not memcache.add(self.dieid, self, namespace='kiosks'):
+            logging.error("Unable to add entity kiosk to memcache")
+        super(Kiosk, self).put(**kwargs)
+    
 class SyncSession(db.Model):
     """A upload session from the kiosk"""
     client_ref = db.StringProperty()
@@ -87,4 +94,20 @@ class Heartbeat(db.Model):
     software_version = db.StringProperty()
     client_time = db.DateTimeProperty()
     server_time = db.DateTimeProperty()
+    
+    def skew_str(self):
+        tdiff = self.server_time - self.client_time
+        skew_secs = tdiff.seconds
+        if skew_secs == 0:
+            return "%.2f ms" % (tdiff.microseconds/1000.0)
+        elif skew_secs > 3600*24:
+            return "%d days" % tdiff.days
+        else:
+            return "%d secs" % tdiff.seconds
+    
+    def bad_skew(self):
+        tdiff = self.server_time - self.client_time
+        if tdiff.seconds >= 60:
+            return True
+        return False
     

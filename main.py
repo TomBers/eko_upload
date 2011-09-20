@@ -18,6 +18,7 @@ class HomePageHandler(BaseHandler):
         self.render_response('main.html', **ctx)
 
 config = {}
+# secret key for testing
 config['webapp2_extras.sessions'] = {
     'secret_key': 'le9c3jc0dkiwidocsiameses',
 }

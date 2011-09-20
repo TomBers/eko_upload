@@ -4,6 +4,7 @@ from webapp2_extras import jinja2, sessions
 from google.appengine.api import users
 from data import Kiosk, SyncSession
 from google.appengine.ext import db
+from google.appengine.api import memcache
 import logging
 
 from google.appengine.ext import blobstore
@@ -29,17 +30,41 @@ class FileUploadRequestHandler(webapp2.RequestHandler):
 
 class FileUploadHandler(blobstore_handlers.BlobstoreUploadHandler):
     
-    def _verify_client(self, kiosk, signature, challenge):
-        bconv = BaseConverter('0123456789abcdef')
+    def _get_public_key(self, kiosk):
+        """
+        .. py:func:: _get_public_key(kiosk)
         
-        # get encoded public key from database
-        pubkey_n = bconv.to_decimal(kiosk.pubkey_n)
-        pubkey_e = bconv.to_decimal(kiosk.pubkey_e)
+        Returns the public key for this kiosk, either from memcache or the datastore.
+        
+        :param kiosk: The kiosk object.
+        :rtype RSAobj: A public key object.
+        """
+        # check memcache
+        pubkey = memcache.get(kiosk.dieid, namespace='rsa-publickeys')
+        if pubkey is not None:
+            return pubkey
+        else:
+            # get encoded public key from database
+            pubkey_n = self.bconv.to_decimal(kiosk.pubkey_n)
+            pubkey_e = self.bconv.to_decimal(kiosk.pubkey_e)
+            
+            #create the public key
+            try:
+                pubkey = RSA.construct((pubkey_n, pubkey_e))
+            except:
+                logging.critical("Could not create public key for kiosk")
+                return None
+            if not memcache.add(kiosk.dieid, pubkey, namespace='rsa-publickeys'):
+                logging.error("Unable to save rsa key to memcache.")
+            return pubkey
+        
+    def _verify_client(self, kiosk, signature, challenge):
+        
         
         #create the public key
-        try:
-            pubkey = RSA.construct((pubkey_n, pubkey_e))
-        except:
+        pubkey = self._get_public_key(kiosk)
+        
+        if not pubkey:
             logging.critical("Could not create public key for kiosk")
             return False
         
@@ -61,7 +86,8 @@ class FileUploadHandler(blobstore_handlers.BlobstoreUploadHandler):
             self.response.write('No device id provided.\n')
             return
         
-        kiosk = db.GqlQuery("SELECT * FROM Kiosk WHERE dieid = :1", dieid).get()
+        kiosk = Kiosk.kiosk_from_dieid(dieid)
+        
         if not kiosk:
             self.error(400)
             self.response.write('Kiosk is unregistered on system.\n')

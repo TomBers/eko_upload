@@ -253,7 +253,7 @@ class JSONRPCMethods(object):
         logging.info("Heartbeat registered from %s@%s" % (kiosk.name, ip))
         return
         
-    def post_message(self, method, id, **kwargs):
+    def post_messages(self, method, id, **kwargs):
         """
         .. py:func:: post_messages(method, id, **kwargs)
         
@@ -307,7 +307,7 @@ class JSONRPCMethods(object):
             if pubkey.verify(hash, signature):
                 #message is authentic
                 for message in messages:
-                	self._create_clientmsg(kiosk, message, self.request.remote_addr)
+                    self._create_clientmsg(kiosk, message, self.request.remote_addr)
                 data = {}
                 data['result'] = 'Success'
                 data['error'] = None
@@ -329,29 +329,29 @@ class JSONRPCMethods(object):
         h.kiosk  = kiosk
         
         if 'session-ref' in message.keys():
-        	session_uuid = message['session-ref']
+            session_uuid = message['session-ref']
         else:
-        	session_uuid = None
-        	
+            session_uuid = None
+            
         if 'message' in message.keys():
-        	h.message = message['message']
+            h.message = message['message']
         else:
-        	logging.error("No message in kiosk msg from %s" % kiosk.dieid)
+            logging.error("No message in kiosk msg from %s" % kiosk.dieid)
         
         if 'origin' in message.keys():
-        	h.origin = message['origin']
+            h.origin = message['origin']
         else:
-        	logging.error("No origin for kiosk msg from %s" % kiosk.dieid)
+            logging.error("No origin for kiosk msg from %s" % kiosk.dieid)
         
         if 'origin-date' in message.keys():
-        	h.origin_date = message['origin-date']
+            h.origin_date = message['origin-date']
         else:
-        	logging.error("No origin date for kiosk msg from %s" % kiosk.dieid)
+            logging.error("No origin date for kiosk msg from %s" % kiosk.dieid)
         
         if session_uuid:
-        	sess = db.GqlQuery("SELECT __key__ FROM SyncSession WHERE client_ref = :1", session_uuid).get()
-        	if sess:
-        		h.session_ref = sess
+            sess = db.GqlQuery("SELECT __key__ FROM SyncSession WHERE client_ref = :1", session_uuid).get()
+            if sess:
+                h.session_ref = sess
         
         h.put()
         logging.info("Kiosk Message registered from %s@%s" % (kiosk.name, ip))
@@ -391,15 +391,15 @@ class JSONRPCHandler(webapp2.RequestHandler):
         return (method, params2, id)
         
     def get(self):
-    	response_dict = {}
-    	response_dict['me'] = self.request.url
-    	response_dict['version'] = '2.0.0'
-    	response_dict['vendor'] = 'e.quinox'
-    	response_dict['provides'] = ['heartbeat', 'get_messages', 'send_messages']
-    	response_dict['config'] = {'utc': datetime.utcnow()}
-    	self.response.headers['Content-Type'] = 'application/json'
-    	self.response.out.write(simplejson.dumps(response_dict))
-    	
+        response_dict = {}
+        response_dict['me'] = self.request.url
+        response_dict['version'] = '2.0.0'
+        response_dict['vendor'] = 'e.quinox'
+        response_dict['provides'] = ['heartbeat', 'get_messages', 'post_messages']
+        response_dict['config'] = {'utc': datetime.utcnow()}
+        self.response.headers['Content-Type'] = 'application/json'
+        self.response.out.write(simplejson.dumps(response_dict))
+        
     def post(self):
         """
         .. py:func:: post()
