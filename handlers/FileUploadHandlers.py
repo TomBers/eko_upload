@@ -25,6 +25,7 @@ class FileUploadRequestHandler(webapp2.RequestHandler):
     def get(self):
         upload_url = blobstore.create_upload_url('/api/upload')
         self.response.headers['X-eko-challenge'] = str(uuid1().get_hex())
+        self.response.headers['client-ip'] = self.
         self.response.write(upload_url)
         return
 
@@ -87,7 +88,7 @@ class FileUploadHandler(blobstore_handlers.BlobstoreUploadHandler):
         if not dieid:
             self.error(403)
             self.response.write('No device id provided.\n')
-            logger.warn('Device attempted contact without die id from ip %s' % self.request.remote_addr)
+            logger.warn('Device attempted contact without die id from ip %s.' % self.request.remote_addr)
             return
         
         kiosk = Kiosk.kiosk_from_dieid(dieid)
@@ -146,7 +147,7 @@ class FileUploadHandler(blobstore_handlers.BlobstoreUploadHandler):
         sync = SyncSession()
         sync.client_ref = client_ref
         sync.data_type = type
-        
+        sync.kiosk = kiosk
         sync.payload_size = 0
         
         # payload size + manifest size
