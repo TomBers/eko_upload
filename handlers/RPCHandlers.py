@@ -20,7 +20,7 @@ import pickle
 from datetime import datetime
 
 # the database model
-from data import Heartbeat, Kiosk
+from data import Heartbeat, Kiosk, KioskMessage, SyncSession, ServerMessage
 
 # encode decode/long integers to from ascii
 from baseconv import BaseConverter
@@ -285,7 +285,7 @@ class JSONRPCMethods(object):
         
         
         if not kiosk:
-            logging.warn('Unrecognised kiosk attempted %s (IP: %s, sw_version: %s, dieid: %s).' % (method, self.request.remote_addr, sw_version, dieid))
+            logging.warn('Unrecognised kiosk attempted %s (IP: %s, dieid: %s).' % (method, self.request.remote_addr, dieid))
             return self._standard_error_response(method, id, 'Not recognised', 20, 'Kiosk not registered with system.')
         
         # log this event
@@ -334,21 +334,24 @@ class JSONRPCMethods(object):
             session_uuid = None
             
         if 'message' in message.keys():
-            h.message = message['message']
+            if message['message'] is not None:
+                h.message = message['message']
         else:
             logging.error("No message in kiosk msg from %s" % kiosk.dieid)
         
         if 'origin' in message.keys():
-            h.origin = message['origin']
+            if message['origin'] is not None:
+                h.origin = message['origin']
         else:
             logging.error("No origin for kiosk msg from %s" % kiosk.dieid)
         
         if 'origin-date' in message.keys():
-            h.origin_date = message['origin-date']
+            if message['origin-date'] is not None:
+                h.origin_date = message['origin-date']
         else:
             logging.error("No origin date for kiosk msg from %s" % kiosk.dieid)
         
-        if session_uuid:
+        if session_uuid is not None:
             sess = db.GqlQuery("SELECT __key__ FROM SyncSession WHERE client_ref = :1", session_uuid).get()
             if sess:
                 h.session_ref = sess

@@ -6,7 +6,7 @@ from data import Kiosk, SyncSession
 from google.appengine.ext import db
 import logging
 
-from handlers.BaseHandler import BaseHandler
+from handlers.BaseHandler import BaseHandler, FlushCacheHandler
 from handlers.KioskHandlers import RegKiosksHandler, EditKioskHandler, ListKiosksHandler, SendMsgKioskHandler
 from handlers.RPCHandlers import JSONRPCHandler
 from handlers.FileUploadHandlers import FileUploadHandler, FileUploadRequestHandler
@@ -31,7 +31,8 @@ app = webapp2.WSGIApplication([
     (r'/kiosks/edit/([a-zA-Z0-9_]+)', EditKioskHandler),
     ('/api/json', JSONRPCHandler),
     ('/api/upload', FileUploadHandler),
-    ('/api/upload_request', FileUploadRequestHandler)
+    ('/api/upload_request', FileUploadRequestHandler),
+    ('/sys/flush', FlushCacheHandler)
 ], config=config, debug=True)
 
 def main():

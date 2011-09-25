@@ -29,6 +29,7 @@ class FileUploadRequestHandler(webapp2.RequestHandler):
         return
 
 class FileUploadHandler(blobstore_handlers.BlobstoreUploadHandler):
+    bconv = BaseConverter('0123456789abcdef')
     
     def _get_public_key(self, kiosk):
         """
@@ -45,7 +46,9 @@ class FileUploadHandler(blobstore_handlers.BlobstoreUploadHandler):
             return pubkey
         else:
             # get encoded public key from database
+            logging.debug("Pubkey n: %s." % kiosk.pubkey_n)
             pubkey_n = self.bconv.to_decimal(kiosk.pubkey_n)
+            logging.debug("Pubkey e: %s." % kiosk.pubkey_e)
             pubkey_e = self.bconv.to_decimal(kiosk.pubkey_e)
             
             #create the public key
@@ -84,6 +87,7 @@ class FileUploadHandler(blobstore_handlers.BlobstoreUploadHandler):
         if not dieid:
             self.error(403)
             self.response.write('No device id provided.\n')
+            logger.warn('Device attempted contact without die id from ip %s' % self.request.remote_addr)
             return
         
         kiosk = Kiosk.kiosk_from_dieid(dieid)
@@ -93,11 +97,15 @@ class FileUploadHandler(blobstore_handlers.BlobstoreUploadHandler):
             self.response.write('Kiosk is unregistered on system.\n')
             logging.warn('Unregistered kiosk on ip %s with dieid %s.' % (self.request.remote_addr, dieid))
             return
+            
+        logging.debug("Encoded sig: %s." % self.request.headers['X-eko-signature'])
         
         # look for the signature
         try:
             signature = bconv.to_decimal(self.request.headers['X-eko-signature'])
+            logging.debug("Decoded sig: %s." % str(signature))
             challenge = self.request.headers['X-eko-challenge']
+            logging.debug("Challenge: %s." % challenge)
             # signature should be uuid we sent kiosk signed with the public key
             verify = self._verify_client(kiosk, signature, challenge)
         except:

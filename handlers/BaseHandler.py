@@ -2,6 +2,7 @@ import webapp2
 
 from webapp2_extras import jinja2, sessions
 from google.appengine.api import users
+from google.appengine.api import memcache
 import logging
 
 
@@ -44,3 +45,9 @@ class BaseHandler(webapp2.RequestHandler):
     def session(self):
     # Returns a session using the default cookie key.
         return self.session_store.get_session()
+
+class FlushCacheHandler(BaseHandler):
+    def get(self):
+        memcache.flush_all()
+        self.session.add_flash("Memcache flushed.", 'ok')
+        self.redirect('/kiosks')
