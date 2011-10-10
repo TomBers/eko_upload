@@ -17,8 +17,9 @@ class ListKiosksHandler(BaseHandler):
         if user:
             ctx['kiosks'] = KioskFeedHelper.getKiosksByUser(user)
             helper = KioskFeedHelper(user)
-            ctx['heartbeats'] = helper.getHeartbeats()
-            ctx['unsynced_smsgs'], ctx['recent_smsgs'] = helper.getServerMessages()
+            ctx['heartbeats'] = helper.getMostRecentHeartbeats()
+            ctx['unsynced_smsgs'] = helper.getServerMessages()
+            ctx['recent_cmsgs'] = helper.getKioskMessages()
         else:
             self.redirect(users.create_login_url(self.request.uri))
         self.render_response('kiosk_list.html', **ctx)
@@ -28,17 +29,46 @@ class KioskFeedHelper(object):
         self.user = user
     
     def getKiosksByUser(cls, user, recache=False):
-    	if not user:
-    		return
-    	kiosks = memcache.get(user.user_id(), namespace='kiosks_by_owner')
+        if not user:
+            return
+        if users.is_current_user_admin():
+            kiosks = memcache.get('allkiosks')
+        else:
+            kiosks = memcache.get(user.user_id(), namespace='kiosks_by_owner')
         if (not kiosks) or (recache == True):
-        	kiosks = db.GqlQuery("SELECT * FROM Kiosk WHERE admin = :1", user)
-        	if not memcache.add(user.user_id(), kiosks, 5*60*60,namespace='kiosks_by_owner'):
-        		logging.error("Could not cache kiosks in memcache.")
+            if users.is_current_user_admin():
+                # for administrators, show all kiosks
+                kiosks = db.GqlQuery("SELECT * FROM Kiosk")
+                if not memcache.set('allkiosks', kiosks):
+                    logging.error("Could not cache all kiosks for administrator.")
+            else:
+                # for normal users only the kiosks they own
+                kiosks = db.GqlQuery("SELECT * FROM Kiosk WHERE admin = :1", user)
+                if not memcache.set(user.user_id(), kiosks, namespace='kiosks_by_owner'):
+                    logging.error("Could not cache kiosks in memcache.")
         return kiosks
     
     getKiosksByUser = classmethod(getKiosksByUser)
     
+    def getMostRecentHeartbeat(self, kiosk):
+        """Returns the most recent heartbeat from memcache"""
+        hb = memcache.get(kiosk.dieid, namespace="latest-beats")
+        if not hb:
+            # get the heartbeat from db
+            hb = kiosk.heartbeat_set.order('-server_time').get()
+            memcache.set(kiosk.dieid, hb, namespace="latest-beats")
+        return hb
+    
+    def getMostRecentHeartbeats(self):
+        kiosks = self.getKiosksByUser(self.user)
+        heartbeats = []
+        for kiosk in kiosks:
+            most_recent = self.getMostRecentHeartbeat(kiosk)
+            if most_recent is not None:
+                heartbeats.append(most_recent)
+        return heartbeats
+    
+    # DECOMMISSION
     def getHeartbeats(self, limit=20):
         """Returns a list of heartbeat records ordered by time for the current users kiosks"""
         kiosks = self.getKiosksByUser(self.user)
@@ -51,12 +81,19 @@ class KioskFeedHelper(object):
         """Returns a list of server messages"""
         kiosks = self.getKiosksByUser(self.user)
         unsynced_msgs = []
-        recently_synced = []
+        #recently_synced = []
         for kiosk in kiosks:
-        	unsynced_msgs += kiosk.servermessage_set.filter('retrieved =', False).fetch(limit)
-        	recently_synced += kiosk.servermessage_set.filter('retrieved =', True).fetch(limit)
-        return (unsynced_msgs, recently_synced)
-        
+            unsynced_msgs += kiosk.servermessage_set.filter('retrieved =', False).order('-date').fetch(limit)
+        return unsynced_msgs
+    
+    def getKioskMessages(self, limit=10):
+        """Returns a list of Kiosk Messages"""
+        kiosks = self.getKiosksByUser(self.user)
+        recent_msgs = []
+        for kiosk in kiosks:
+            recent_msgs += kiosk.kioskmessage_set.order('-date').fetch(limit)
+        return recent_msgs
+    
 class RegKiosksHandler(BaseHandler):
     formerror = []
     
@@ -102,8 +139,8 @@ class RegKiosksHandler(BaseHandler):
                 logging.exception('Unable to save kiosk to db') 
                 self.session.add_flash('Add failed', 'error')
             finally:
-            	# recache kiosks for this user
-            	KioskFeedHelper.getKiosksByUser(user, recache=True)
+                # recache kiosks for this user
+                KioskFeedHelper.getKiosksByUser(user, recache=True)
                 self.redirect('/kiosks')
                 
         else:

@@ -24,8 +24,20 @@ import Crypto.PublicKey.RSA as RSA
 class FileUploadRequestHandler(webapp2.RequestHandler):
     def get(self):
         upload_url = blobstore.create_upload_url('/api/upload')
-        self.response.headers['X-eko-challenge'] = str(uuid1().get_hex())
-        self.response.headers['client-ip'] = self.
+        challenge = str(uuid1().get_hex())
+        self.response.headers['X-eko-challenge'] = challenge
+        dieid = self.request.get('kiosk-id')
+        kiosk = Kiosk.kiosk_from_dieid(dieid)
+        
+        # we create a sync session
+        sess = SyncSession()
+        sess.client_ref = challenge
+        sess.client_ip = self.request.remote_addr
+        sess.kiosk = kiosk
+        sess.start_date = datetime.utcnow()
+        sess.put()
+        
+        self.response.headers['client-ip'] = self.request.remote_addr
         self.response.write(upload_url)
         return
 
@@ -63,8 +75,6 @@ class FileUploadHandler(blobstore_handlers.BlobstoreUploadHandler):
             return pubkey
         
     def _verify_client(self, kiosk, signature, challenge):
-        
-        
         #create the public key
         pubkey = self._get_public_key(kiosk)
         
@@ -90,6 +100,8 @@ class FileUploadHandler(blobstore_handlers.BlobstoreUploadHandler):
             self.response.write('No device id provided.\n')
             logger.warn('Device attempted contact without die id from ip %s.' % self.request.remote_addr)
             return
+            
+        logging.info("File upload incoming from kiosk : %s" % dieid)
         
         kiosk = Kiosk.kiosk_from_dieid(dieid)
         
@@ -115,15 +127,16 @@ class FileUploadHandler(blobstore_handlers.BlobstoreUploadHandler):
         
         # auth failed
         if not verify:
-            self.error(403)
+            logging.error("Kiosk id %s did not pass id check." % dieid)
             self.response.write('Unable to verify identity of kiosk.\n')
             return
         
         # a uuid that identifies this data packet on the remote device
-        client_ref       = self.request.get('reference')
+        client_ref       = self.request.headers['X-eko-challenge']
         if not client_ref:
             logging.error("No client reference provided.")
-            client_ref = "FAILSAFE"
+            self.response.write('Client Error: No reference provided.')
+            return
         
         # the type of data being sent (logs, readings, etc...)
         type             = self.request.get('type')
@@ -144,10 +157,13 @@ class FileUploadHandler(blobstore_handlers.BlobstoreUploadHandler):
             logging.exception("Payload missing from upload data.")
             self.response.write('Payload Not Found\n')
         
-        sync = SyncSession()
-        sync.client_ref = client_ref
-        sync.data_type = type
+        sync = SyncSession.get_by_clientref(client_ref)
+        if not sync:
+            logging.error("Upload attempt without requesting sync session.")
+            self.response.write('Upload request improperly handled.')
+            return
         sync.kiosk = kiosk
+        sync.data_type = type
         sync.payload_size = 0
         
         # payload size + manifest size
@@ -159,8 +175,10 @@ class FileUploadHandler(blobstore_handlers.BlobstoreUploadHandler):
         sync.payload = payload
         sync.manifest = manifest
         
-        sync.client_ip = self.request.remote_addr
-        sync.date = datetime.utcnow()
+        sync.software_version = software_version
+        
+        #sync.client_ip = self.request.remote_addr
+        sync.end_date = datetime.utcnow()
         
         try:
             sync.put()

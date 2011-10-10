@@ -45,21 +45,41 @@ class Kiosk(db.Model):
     # override the default put function to update memcache transparently
     # this handles both create and update.
     def put(self, **kwargs):
-        if not memcache.add(self.dieid, self, namespace='kiosks'):
-            logging.error("Unable to add entity kiosk to memcache")
         super(Kiosk, self).put(**kwargs)
+        if not memcache.set(self.dieid, self, namespace='kiosks'):
+            logging.error("Unable to add entity kiosk to memcache")
+        if not memcache.delete('allkiosks'):
+            logging.error("Network Error deleteig all cached kiosks.")
+        if not memcache.delete(self.admin.user_id(), namespace="kiosks_by_owner"):
+            logging.error("Network Error deleting all cached kiosks by owner.")
     
 class SyncSession(db.Model):
     """A upload session from the kiosk"""
     client_ref = db.StringProperty()
     kiosk = db.ReferenceProperty(Kiosk)
-    date = db.DateTimeProperty()
+    start_date = db.DateTimeProperty()
+    end_date = db.DateTimeProperty()
     data_type = db.StringProperty()
     payload_size = db.IntegerProperty()
     client_ip = db.StringProperty()
     software_version = db.StringProperty()
     payload = blobstore.BlobReferenceProperty()
     manifest = blobstore.BlobReferenceProperty()
+    
+    def put(self, **kwargs):
+        super(SyncSession, self).put(**kwargs)
+        # cache session in memcache for 1 hour
+        if not memcache.set(self.client_ref, self, 60*60,namespace='syncsessions'):
+            logging.error("Could not put syncsession %s in memcache." % self.client_ref)
+    
+    def get_by_clientref(cls, ref):
+        sess = memcache.get(ref, namespace='syncsessions')
+        if not sess:
+            sess = db.GqlQuery("SELECT * FROM SyncSession WHERE client_ref = :1", ref).get()
+            if sess:
+                memcache.set(sess.client_ref, self, 60*60, namespace='syncsessions')
+        return sess
+    get_by_clientref = classmethod(get_by_clientref)
 
 class ServerMessage(db.Model):
     """A message from the server to the kiosk"""
@@ -90,6 +110,7 @@ class Heartbeat(db.Model):
     """A kiosk sends a heartbeat every time it finds itself online"""
     kiosk = db.ReferenceProperty(Kiosk)
     client_ip = db.StringProperty()
+    client_intip = db.StringProperty()
     client_uptime = db.StringProperty()
     software_version = db.StringProperty()
     client_time = db.DateTimeProperty()
@@ -107,7 +128,16 @@ class Heartbeat(db.Model):
     
     def bad_skew(self):
         tdiff = self.server_time - self.client_time
-        if tdiff.seconds >= 60:
+        if tdiff.seconds >= 120:
             return True
         return False
     
+    def age(self):
+        tdiff = self.server_time - datetime.datetime.utcnow()
+        seconds = tdiff.seconds
+        if seconds > 60*60:
+            return "%.2f hours ago" % (tdiff.seconds/3600.0)
+        elif seconds > 60:
+            return "%d minutes ago" % (int(round(tdiff.seconds/60.0)))
+        else:
+            return "%d seconds ago" % (tdiff.seconds)

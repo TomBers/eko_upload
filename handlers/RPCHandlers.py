@@ -195,14 +195,15 @@ class JSONRPCMethods(object):
         """
         # extract arguments
         dieid = kwargs['kiosk-id']
+        logging.debug('Device with id : %s has a pulse from %s.' % (dieid, self.request.remote_addr))
+        
         uptime = kwargs['uptime']
         sw_version = kwargs['sw-version']
+        local_inetadr = kwargs['rwanda-ip']
         time = kwargs['time']
         
         # find the kiosk from the kiosk id
-        logging.debug('device with id : %s has a pulse.' % dieid)
         kiosk = Kiosk.kiosk_from_dieid(dieid)
-        
         
         if not kiosk:
             logging.warn('Unrecognised kiosk attempted %s (IP: %s, sw_version: %s, dieid: %s).' % (method, self.request.remote_addr, sw_version, dieid))
@@ -226,7 +227,7 @@ class JSONRPCMethods(object):
         if pubkey and signature:
             if pubkey.verify(hash, signature):
                 #message is authentic
-                self._create_heartbeat(kiosk, uptime, sw_version, time, self.request.remote_addr)
+                self._create_heartbeat(kiosk, uptime, sw_version, time, self.request.remote_addr, local_inetadr)
                 data = {}
                 data['result'] = 'Success'
                 data['error'] = None
@@ -236,7 +237,7 @@ class JSONRPCMethods(object):
                 return self._standard_error_response(method, id, 'Signature Incorrect', 12, 'Verification signature failed check.')
     
     # registers the heartbeat in the data store
-    def _create_heartbeat(self, kiosk, uptime, sw_version, time, ip):
+    def _create_heartbeat(self, kiosk, uptime, sw_version, time, ip, local_inetadr):
         """
         .. py:func:: _create_heartbeat(kiosk, uptime, sw_version, time, ip)
         
@@ -244,13 +245,34 @@ class JSONRPCMethods(object):
         """
         h = Heartbeat()
         h.client_ip = ip
+        h.client_intip = local_inetadr
         h.client_uptime = uptime
         h.kiosk  = kiosk
         h.software_version = sw_version
-        h.client_time = time
+        if isinstance(time, datetime):
+        	h.client_time = time
+        else:
+        	h.client_time = datetime.utcnow()
+        	logging.warn("Client sent me a non datetime object in the request!")
         h.server_time = datetime.utcnow()
-        h.put()
-        logging.info("Heartbeat registered from %s@%s" % (kiosk.name, ip))
+        oldh = memcache.get(kiosk.dieid, namespace='latest-beats')
+        # if we have cached a kiosk which has the same IP as this request, just update the cache
+        if oldh:
+        	if oldh.client_ip != h.client_ip:
+        		# if the IP has changed, add to the db
+        		if not oldh.is_saved():
+        			# old h is the last hb at that address
+        			oldh.put()
+        		h.put()
+        	elif h.bad_skew():
+        		# if the skew is worth noting, add to the db
+        		logging.debug("Commiting to db for bad skew!")
+        		h.put()
+    	else:
+    		# we dont have anything cached, so add anyway
+    		h.put()
+        memcache.set(kiosk.dieid, h, namespace='latest-beats')
+        logging.debug("Heartbeat registered from %s@%s" % (kiosk.name, ip))
         return
         
     def post_messages(self, method, id, **kwargs):
@@ -277,6 +299,8 @@ class JSONRPCMethods(object):
         """
         # extract arguments
         dieid = kwargs['kiosk-id']
+        logging.debug('Device with id : %s has a pulse from %s.' % (dieid, self.request.remote_addr))
+        
         messages = kwargs['messages']
         
         # find the kiosk from the kiosk id
@@ -347,7 +371,13 @@ class JSONRPCMethods(object):
         
         if 'origin-date' in message.keys():
             if message['origin-date'] is not None:
-                h.origin_date = message['origin-date']
+            	if isinstance(message['origin-date'], datetime):
+                	h.origin_date = message['origin-date']
+                else:
+                	try:
+                		h.origin_date = datetime.strptime(message['origin-date'], '%Y-%m-%dT%H:%M:%S')
+                	except ValueError:
+                		logging.exception("Cannot treat %s as datetime." % message['origin-date'])
         else:
             logging.error("No origin date for kiosk msg from %s" % kiosk.dieid)
         

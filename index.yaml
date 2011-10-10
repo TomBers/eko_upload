@@ -16,8 +16,27 @@ indexes:
   - name: server_time
     direction: desc
 
+- kind: KioskMessage
+  properties:
+  - name: kiosk
+  - name: date
+    direction: desc
+
+- kind: ServerMessage
+  properties:
+  - name: kiosk
+  - name: retrieved
+  - name: date
+    direction: desc
+
 - kind: ServerMessage
   properties:
   - name: kiosk
   - name: retrieved
   - name: retrieved_date
+
+- kind: SyncSession
+  properties:
+  - name: kiosk
+  - name: end_date
+    direction: desc

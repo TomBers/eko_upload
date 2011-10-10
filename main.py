@@ -10,7 +10,8 @@ from handlers.BaseHandler import BaseHandler, FlushCacheHandler
 from handlers.KioskHandlers import RegKiosksHandler, EditKioskHandler, ListKiosksHandler, SendMsgKioskHandler
 from handlers.RPCHandlers import JSONRPCHandler
 from handlers.FileUploadHandlers import FileUploadHandler, FileUploadRequestHandler
-
+from handlers.SyncSessionHandler import ListSyncSessionHandler
+from handlers.DownloadHandler import DownloadSyncHandler
 class HomePageHandler(BaseHandler):
     def get(self):
         user = users.get_current_user()
@@ -32,7 +33,9 @@ app = webapp2.WSGIApplication([
     ('/api/json', JSONRPCHandler),
     ('/api/upload', FileUploadHandler),
     ('/api/upload_request', FileUploadRequestHandler),
-    ('/sys/flush', FlushCacheHandler)
+    ('/sys/flush', FlushCacheHandler),
+    (r'/kiosks/syncs/([a-zA-Z0-9_]+)', ListSyncSessionHandler),
+    (r'/download/([a-zA-Z0-9_-]+)', DownloadSyncHandler),
 ], config=config, debug=True)
 
 def main():

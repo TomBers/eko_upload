@@ -1,0 +1,79 @@
+{% extends 'main.html' %}
+
+{% block header %}
+<div class="grid_12">
+	<div class="pad5">
+		<h2>Recent Sync Sessions for {{kiosk.name}}</h2>
+		<p>This page list data uploaded from Kiosk {{kiosk.dieid}}.</p>
+		{% if not heartbeat %}
+		    <p>This kiosk has not been seen online in some time.</p>
+		{% else %}
+		<p>The kiosk was last seen {{heartbeat.age()}} at ip {{heartbeat.client_ip}}.</p>
+		{% endif %}
+	</div>
+</div>
+{% endblock%}
+
+{% block content %}
+
+    {% if sync_sessions %}
+    <div class="row_box pad5">
+   
+    <div class="grid_12">
+    
+    <table class="display" id="syncs">
+    <thead><tr>
+    <td>Data Type</td>
+    <td>Date</td>
+    <td>Size</td>
+    <td>IP</td>
+    <td>Payload</td>
+    <td>Manifest</td>
+    </tr></thead>
+    
+    <tbody>
+    {% for sess in sync_sessions %}
+    <tr>
+    <td>{{sess.data_type}}</td>
+    <td>{%- if sess.start_date -%}{{sess.start_date.strftime("%d-%m-%Y %H:%M")}}{%- endif -%}</td>
+    <td>{{sess.payload_size}}</td>
+    <td>{{sess.client_ip}}</td>
+    <td>
+    {%- if sess.payload -%}
+    <a href="/download/{{'%s' % (sess.payload.key())}}" title="Download Payload">Download</a>
+    {%- else -%}
+    Not Supplied
+    {%- endif -%}
+    </td>
+    <td>
+    {%- if sess.manifest -%}
+    <a href="/download/{{'%s' % (sess.manifest.key())}}" title="Download Manifest">Download</a>
+    {%- else -%}
+    Not Supplied
+    {%- endif -%}
+    </td>
+    </tr>
+    {% endfor %}
+    </tbody>
+    
+    </table>
+    </div>
+    </div>
+    {% endif %}
+    
+  
+{% endblock %}
+
+{% block js_region %}
+<script type="text/javascript" charset="utf-8">
+			$(document).ready(function() {
+				
+				$('#syncs').dataTable(
+				{
+					"bJQueryUI": true,
+					"sPaginationType": "full_numbers"
+				});
+				
+			} );
+		</script>
+{% endblock %}
