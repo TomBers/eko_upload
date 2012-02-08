@@ -13,7 +13,7 @@
 
   <title>{% block title %}ekoHub - Homepage{% endblock %}</title>
   <meta name="description" content="energy kiosk observer webui">
-  <meta name="author" content="Imperial College London">
+  <meta name="author" content="e.quinox">
 
   <!-- Mobile viewport optimized: j.mp/bplateviewport -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -28,6 +28,9 @@
   <link rel="stylesheet" href="/static/css/style.css?v=2">
   <link rel="stylesheet" href="/static/css/960.css">
   <link rel="stylesheet" href="/static/css/default.css">
+  
+  
+  <link rel="stylesheet" href="/static/css/coin-slider-styles.css" type="text/css" />
   
 <link rel="stylesheet" href="/static/css/demo_table.css">
 <link rel="stylesheet" href="/static/css/demo_table_jui.css">
@@ -67,15 +70,17 @@
                         
                         <ul class="button-list">
                                 <li><a href="/" class="button">Home</a></li>
-                                {% if user_name %}
+                               
                                 <li><a href="/kiosks" class="button">Dashboard</a></li>
-                                {% endif %}
-                                <li><a href="http://bitbucket.org/charith_amarasinghe" class="button">Code</a></li>
-                                <li><a href="/docs" class="button">Help</a></li>
-                                <li><a href="/about" class="button">About</a></li>
+                             
+                                <li><a href="http://github.com/equinoxorg" class="button">Code</a></li>
+                                <li><a href="http://e.quinox.org/wiki/Datalogger_Project_2010/2011" class="button">Wiki</a></li>
+                                <li><a href="http://e.quinox.org/projects" class="button">About</a></li>
+                                <li><a href="http://e.quinox.org/" style="margin-left: 20px;" class="imgbutton"><img alt="e.quinox" title="e.quinox home page" style="margin-top: -7px;" src="/static/img/equinox.png"></img></a></li>
                         </ul>
                         
                 </div>
+                
         		<div class="grid_12" id="login_links">
         			{% if user_name %}
         			<span>{{ user_name }} |</span>
@@ -115,9 +120,46 @@
 			
             {% block content %}
             <div class="grid_12">
-			<div class="row_box">
-            	<h2 style="padding-bottom: 10px;">Welcome to ekoHub</h2>
-            	<p>This web service collates data from the Energy Kiosk Observer. Login to your account in order to download data.</p>
+			
+            <div class="row_box">
+                <h2 style="padding-bottom: 10px;">Welcome to ekoHub</h2>
+                <p style="margin-bottom: 10px;">This web service collates data from the Energy Kiosk Observer. Login to your account in order to download data.</p>
+                
+                <div id="coin-slider">
+                
+                <img src='/static/img/slide-7.jpg' >
+                
+                <img src='/static/img/slide-8.jpg' >
+                
+                <img src='/static/img/slide-6.jpg' >
+                
+                <img src='/static/img/slide-10.jpg' >
+                
+                <img src='/static/img/slide-5.jpg' >
+                
+                <img src='/static/img/slide-9.jpg' >
+                
+                <img src='/static/img/slide-1.jpg' >
+               
+               
+                <img src='/static/img/slide-2.jpg' >
+                
+                <img src='/static/img/slide-3.jpg' >
+               
+                <img src='/static/img/slide-4.jpg' >
+                
+                
+                </div>
+            </div>
+            
+            <div class="row_box textbox">
+            	<h2 style="padding-bottom: 10px;">The Energy Kiosk Observer Project</h2>
+            	<img src="/static/img/deployment_rwanda.jpg" alt="e.quinox team members installing sensors" title="e.quinox installing units in rwanda" style="float: right; margin: 10px;"></img>
+            	<p style="font-size: 110%;">The EKO project aims to develop modular, low cost and energy efficient data logging equipment for <a href="www.e.quinox.org" title="e.quinox home page">e.quinox</a> Energy Kiosks. The project currently encompasses a highly extensible, sub 1W datalogger device based on a CircuitCo/TI Beagleboard XM, modular PIC24F based sensor nodes supporting a subset of MODBUS functions and several power measurement devices. The final parts cost of each data logging system is below £350 and can be manufactured in-house by a team of 3 to 4 volunteers within 7 days. All hardware and software designs for this project are in the process of being organised and packaged under an Open Source licensing scheme.</p>
+            	<p>Original work on this project including parts of this website were developed for e.quinox by a <a href="/about" title="About this project">Third Year Project Team</a> at the Department of Electrical and Electronic Engineering, Imperial College London. Ownership of the project has been branched to the e.quinox organisation since September 2011, all future development work will be carried out by the e.quinox technical group. Source code and schematics are already available online through public git repositories and a full suite of documentation is being written and will be made available on the e.quinox wiki.</p>
+            	<h2 style="padding-bottom: 10px;">Current Developments</h2>
+            	<p style="font-size: 110%;">Current generation hardware is excessive in terms of complexity and power for the application at hand. Continuing development focuses on building a lower cost (sub £150) device based on a low power Microcontroller and RTOS platform instead of the full Linux Operating System current units run. The Beagleboard based devices will find applications in newer high-capacity energy kiosks where they will be extended to provide a full kiosk management and accounting system. For the latest developments on this project visit the e.quinox website.</p>
+            	
             </div>
             </div>
             {% endblock %}
@@ -140,6 +182,8 @@
 
   <!-- scripts concatenated and minified via ant build script-->
   <script src="/static/js/plugins.js"></script>
+  <script type="text/javascript" src="static/js/jquery-1.4.2.js"></script>
+  <script type="text/javascript" src="static/js/coin-slider.min.js"></script>
   <script src="/static/js/script.js"></script>
 
   <script type="text/javascript" src="https://www.google.com/jsapi"></script>
@@ -157,7 +201,11 @@
 
 <script type="text/javascript" language="javascript" src="/static/js/jquery.dataTables.min.js"></script>
         {% block js_region %}
-        <!-- JS -->
+        <script type="text/javascript">
+            $(document).ready(function() {
+                $('#coin-slider').coinslider({width: 935, height: 360, links: false});
+            });
+        </script>
         {% endblock %}
   <!-- end scripts-->
 
@@ -169,12 +217,19 @@
 
 
   <!-- mathiasbynens.be/notes/async-analytics-snippet Change UA-XXXXX-X to be your site's ID -->
-    <!--<script>
-  var _gaq=[["_setAccount","UA-XXXXX-X"],["_trackPageview"]];
-    (function(d,t){var g=d.createElement(t),s=d.getElementsByTagName(t)[0];g.async=1;
-    g.src=("https:"==location.protocol?"//ssl":"//www")+".google-analytics.com/ga.js";
-    s.parentNode.insertBefore(g,s)}(document,"script"));
-  </script> -->
+    <script type="text/javascript">
+    
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-26885582-1']);
+      _gaq.push(['_trackPageview']);
+    
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+    
+    </script>
   
 <script type="text/javascript">
 

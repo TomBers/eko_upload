@@ -357,6 +357,11 @@ a.css3button:hover
 }
 
 
+
+#image_slider {
+    
+}
+
 /*
 	Slideshow
 */
@@ -467,4 +472,12 @@ a.css3button:hover
 #heartbeats_wrapper
 {
     height: 200px;
+}
+
+
+.textbox p
+{
+    font-size: 110%;
+    margin-bottom: 20px;
+    margin-top: 10px;
 }

@@ -3,6 +3,16 @@ from google.appengine.ext import db
 from google.appengine.ext import blobstore
 from google.appengine.api import memcache
 import logging
+
+class StaticPage(db.Model):
+    title = db.StringProperty()
+    url = db.StringProperty()
+    author = db.UserProperty()
+    header = db.TextProperty()
+    body = db.TextProperty()
+    js = db.TextProperty()
+    css_extra = db.TextProperty()
+    
 class Kiosk(db.Model):
     """A record for a kiosk including its owner and security key"""
     name = db.StringProperty()

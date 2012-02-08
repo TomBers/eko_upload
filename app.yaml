@@ -6,6 +6,9 @@ api_version: 1
 handlers:
 - url: /static
   static_dir: static
+
+- url: /docs/pic_firmware
+  static_dir: p24fw_docs
   
 - url: .*
   script: main.py
@@ -24,4 +27,4 @@ skip_files:
 - ^(.*/)?.*/RCS/.*
 - ^(.*/)?\..*
 - ^(.*/)?.*\.bak$
-- ^(.*/)?Crypto
+#- ^(.*/)?Crypto
